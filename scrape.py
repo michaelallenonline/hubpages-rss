@@ -4,23 +4,28 @@ from datetime import datetime
 
 URL = "https://hubpages.com/@michaelallen"
 FEED_FILE = "rss.xml"
-RSS_LINK = "https://raw.githubusercontent.com/michaelallenonline/hubpages-rss/main/rss.xml"
+RSS_LINK = "https://michaelallenonline.com/rss.xml"
 
 def fetch_articles():
     response = requests.get(URL)
     soup = BeautifulSoup(response.text, "html.parser")
-    anchors = soup.select("a._2DqGg")  # update if HubPages changes structure
+
+    # Try various article link patterns
+    articles = soup.find_all("a", href=True)
 
     items = []
-    for a in anchors[:10]:
-        title = a.get_text(strip=True)
-        link = "https://hubpages.com" + a.get("href", "")
-        pubDate = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
-        items.append({
-            "title": title,
-            "link": link,
-            "pubDate": pubDate
-        })
+    for a in articles:
+        href = a["href"]
+        if href.startswith("/hub/") or "/hub/" in href:  # Adjust this if your articles have different paths
+            title = a.get_text(strip=True)
+            if title:
+                full_url = "https://hubpages.com" + href
+                pubDate = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+                items.append({
+                    "title": title,
+                    "link": full_url,
+                    "pubDate": pubDate
+                })
 
     return items
 
@@ -49,5 +54,6 @@ def write_rss(items):
         f.write("\n".join(rss))
 
 if __name__ == "__main__":
-    items = fetch_articles()
-    write_rss(items)
+    articles = fetch_articles()
+    print(f"Found {len(articles)} articles.")
+    write_rss(articles)
