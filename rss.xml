@@ -3,6 +3,6 @@
 <channel>
 <title>Michael Allen HubPages Feed</title>
 <link>https://hubpages.com/@michaelallen</link>
-<atom:link href="https://raw.githubusercontent.com/michaelallenonline/hubpages-rss/main/rss.xml" rel="self" type="application/rss+xml" />
+<atom:link href="https://michaelallenonline.com/rss.xml" rel="self" type="application/rss+xml" />
 <description>Latest articles by Michael Allen</description>
 </channel></rss>
