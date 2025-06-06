@@ -12,18 +12,30 @@ def fetch_articles():
     soup = BeautifulSoup(response.text, "html.parser")
 
     articles = []
+    seen_links = set()
+
     for a in soup.find_all("a", href=True):
         href = a["href"]
-        if href.startswith("https://discover.hubpages.com/"):
-            title = a.get_text(strip=True)
-            if title:
-                articles.append({
-                    "title": escape(title),
-                    "link": escape(href),
-                    "pubDate": datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT"),
-                    "guid": escape(href)
-                })
+        title = a.get_text(strip=True)
+
+        # Only include real articles from discover.hubpages.com
+        if (
+            href.startswith("https://discover.hubpages.com/")
+            and title
+            and len(title.split()) > 3  # filter out "Music", "Continue »", etc.
+            and href not in seen_links
+        ):
+            pubDate = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
+            articles.append({
+                "title": escape(title),
+                "link": escape(href),
+                "pubDate": pubDate,
+                "guid": escape(href)
+            })
+            seen_links.add(href)
+
     return articles
+
 
 def write_rss(items):
     rss = [
