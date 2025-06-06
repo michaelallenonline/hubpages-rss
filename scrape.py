@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+from xml.sax.saxutils import escape
 
 URL = "https://hubpages.com/@michaelallen"
 FEED_FILE = "rss.xml"
@@ -16,13 +17,12 @@ def fetch_articles():
         if href.startswith("https://discover.hubpages.com/"):
             title = a.get_text(strip=True)
             if title:
-                pubDate = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
                 articles.append({
-                    "title": title,
-                    "link": href,
-                    "pubDate": pubDate
+                    "title": escape(title),
+                    "link": escape(href),
+                    "pubDate": datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT"),
+                    "guid": escape(href)
                 })
-
     return articles
 
 def write_rss(items):
@@ -41,7 +41,7 @@ def write_rss(items):
         rss.append(f"<title>{item['title']}</title>")
         rss.append(f"<link>{item['link']}</link>")
         rss.append(f"<pubDate>{item['pubDate']}</pubDate>")
-        rss.append(f"<guid>{item['link']}</guid>")
+        rss.append(f"<guid>{item['guid']}</guid>")
         rss.append("</item>")
 
     rss.append("</channel></rss>")
@@ -50,6 +50,6 @@ def write_rss(items):
         f.write("\n".join(rss))
 
 if __name__ == "__main__":
-    items = fetch_articles()
-    print(f"Fetched {len(items)} articles.")
-    write_rss(items)
+    articles = fetch_articles()
+    print(f"Fetched {len(articles)} articles.")
+    write_rss(articles)
