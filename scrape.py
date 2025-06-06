@@ -10,24 +10,20 @@ def fetch_articles():
     response = requests.get(URL)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    # Try various article link patterns
-    articles = soup.find_all("a", href=True)
-
-    items = []
-    for a in articles:
+    articles = []
+    for a in soup.find_all("a", href=True):
         href = a["href"]
-        if href.startswith("/hub/") or "/hub/" in href:  # Adjust this if your articles have different paths
+        if href.startswith("https://discover.hubpages.com/"):
             title = a.get_text(strip=True)
             if title:
-                full_url = "https://hubpages.com" + href
                 pubDate = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
-                items.append({
+                articles.append({
                     "title": title,
-                    "link": full_url,
+                    "link": href,
                     "pubDate": pubDate
                 })
 
-    return items
+    return articles
 
 def write_rss(items):
     rss = [
@@ -54,6 +50,6 @@ def write_rss(items):
         f.write("\n".join(rss))
 
 if __name__ == "__main__":
-    articles = fetch_articles()
-    print(f"Found {len(articles)} articles.")
-    write_rss(articles)
+    items = fetch_articles()
+    print(f"Fetched {len(items)} articles.")
+    write_rss(items)
